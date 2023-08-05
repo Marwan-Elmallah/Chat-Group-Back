@@ -22,7 +22,7 @@ io.on("connection", (socket) => {
     // console.log(socket.id);
     socket.on("loginName", (user) => {
         users.push({ username: user, id: socket.id })
-        // console.log(users);
+        console.log(users);
         io.emit("showUsers", users)
         socket.on("sendMessage", (msg) => {
             let currentUser = users.find((user) => user.id == socket.id)
