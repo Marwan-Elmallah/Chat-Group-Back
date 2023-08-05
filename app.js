@@ -17,6 +17,7 @@ const io = require("socket.io")(server, {
 
 let users = []
 let chatMsg = []
+let chatMsgPrivate = []
 io.on("connection", (socket) => {
     // console.log(socket.id);
     socket.on("loginName", (user) => {
@@ -30,11 +31,31 @@ io.on("connection", (socket) => {
             // console.log(chatMsg);
         })
     })
+
+    socket.on("chatWith", (id) => {
+        // console.log(id, socket.id);
+        let fromUser = users.find((user) => user.id == socket.id)
+        let toUser = users.find((user) => user.id == id)
+        socket.emit("showUser", toUser.username)
+
+        socket.on("sendMessagePrivate", (msg) => {
+            chatMsgPrivate.push({ user: fromUser.username, message: msg })
+            toUser = users.find((user) => user.id == id)
+            toUser ? null : chatMsgPrivate.push({ user: "SYSTEM", message: "User is Left Chat" })
+            io.emit("displayMsgPrivate", chatMsgPrivate)
+            // console.log(chatMsgPrivate);
+            // console.log("User in", toUser);
+        })
+    })
+
     socket.on("disconnect", () => {
-        // console.log(socket.id);
+        console.log("close", socket.id);
         users = users.filter((user) => user.id != socket.id)
         io.emit("showUsers", users)
-        users.length == 0 ? chatMsg = [] : null
+        if (users.length == 0) {
+            chatMsg = []
+            chatMsgPrivate = []
+        }
         // console.log(users.length);
     });
 })
